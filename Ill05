@@ -1,0 +1,236 @@
+C***************************
+C*****ILLUSTRATION FIVE*****
+C***************************
+C234567
+      PROGRAM IRTS
+C
+C      PROGRAM TO ILLUSTRATE THE RTS SUBROUTINE
+C
+      IMPLICIT REAL*8 (A-H,O-Z) 
+C      IMPLICIT REAL*4 (A-H,O-Z) 
+C
+      IO=6
+CVAX
+C      INTEGER SEEDV
+CIBM
+C      INTEGER*2 SEEDV
+      CHARACTER*32 RTSC
+      DIMENSION RVAL(20)
+CLAHEY
+      YV=RRAND()
+C      SEEDV=1234567
+CIBM
+C       CALL SEED(SEEDV)
+C
+      DO 30 IW=6,16
+       WRITE(IO,90)
+90     FORMAT(/,1X,'REAL VALUE',4X,'NO OF CHAR',4X,'RETURNED STRING',
+     1          4X,'ERROR CODE',/)
+CVAX
+C       YV=RAN(SEEDV)
+CIBM
+C       CALL RANDOM(YV)
+CLAHEY
+        YV=RND()
+       RVAL(1)=YV*1.E-9
+       DO 10 J=2,20
+CIBM
+C        CALL RANDOM(YV)
+C        YV=RAN(SEEDV)
+CLAHEY
+        YV=RND()
+        RVAL(J)=YV*1.E-9*(-10.0)**J
+10     CONTINUE
+100    FORMAT(1X,G12.6)
+200    FORMAT(1X,G12.6,5X,I2,7X,A,10X,I2)
+       I8=IW
+       DO 20 J=1,20
+        CALL RTS(RVAL(J),I8,RTSC,IERR)
+        WRITE(IO,200)RVAL(J),I8,RTSC(1:I8),IERR
+20     CONTINUE
+30    CONTINUE
+      END
+C$SES  9-13-89 CREATED AND TESTED SUBROUTINE
+C*************************************************************************
+C
+      SUBROUTINE RTS(RVALI,NCHA, CVAL,IERR)
+C
+C*************************************************************************
+C
+C       NAME OF MODULE - RTS
+C       MODULE TITLE - REAL VALUE TO CHARACTER STRING
+C       PURPOSE - TO CONVERT A REAL VARIABLE TO A CHARACTER STRING 
+C       OF GIVEN LENGTH
+C       MODIFIED - 9-13-89 
+C
+C       LIMITAIONS - DESIRED CHARACTER LENGTH MUST BE GE 6
+C
+C       VARIABLES USED-
+C
+C VARIABLE I/O TYPE-SPEC DIMENSION     DESCRIPTION AND RANGE
+C  RVALI    I      R        -          INPUT REAL VALUE
+C   NCHA    I      I        -          DESIRED OUTPUT CHARACTER STRING LENGTH
+C   CVAL    O      C       32          OUTPUT CHARACTER STRING
+C   IERR    O      I        -          ERROR CODE
+C                                       0 = OK
+C                                       1 = NCHA LESS THAN MINIMUM OF 6
+C                                       2 = NCHA GREATER THAN MAX OF 30
+C                                       3 = ERROR ON F FORMAT INTERNAL WRITE
+C                                       4 = ERROR ON G FORMAT INTERNAL WRITE
+C                                       5 = ERROR IN CFORM INTERAL WRITE
+C
+      IMPLICIT REAL*8 (A-H,O-Z) 
+C      IMPLICIT REAL*4 (A-H,O-Z) 
+      CHARACTER*8  FORM
+      CHARACTER*32 CVAL,BLANK
+      CHARACTER*33 CVAL1
+C
+      DATA BLANK /'                                '/
+C
+C       SET DEFAULTS
+C
+      IERR=0
+      CVAL=BLANK
+      NCM5=NCHA-5
+      NCM2=NCHA-2
+C
+      IF(RVALI.LT.0.0)THEN
+       RVAL=ABS(RVALI)
+       CVAL(1:1)='-'
+      ELSE
+       RVAL=RVALI
+
+C       CVAL(1:1)='+'
+       CVAL(1:1)=' '
+      ENDIF
+C
+C       CHECK INPUT
+C
+      IF(NCHA.LT.6)THEN
+       IERR=1
+       CVAL=BLANK
+       GOTO 9999
+      ELSE IF(NCHA.GT.30)THEN
+       IERR=2
+       CVAL=BLANK
+       GOTO 9999
+      ENDIF
+C
+C       INPUT IN RANGE FOR FREE FORMAT
+C
+      RFMAX=10.0**(NCM2)
+      RFMIN=10.0**(-NCM5)
+C
+C      IN RANGE
+      IF(RVAL.LT.RFMAX.AND.RVAL.GT.RFMIN)THEN
+C
+C       DEFINE F FORMAT FOR INTERNAL WRITE
+       IFORM=NCM2
+       DO 10 J=1,NCHA-4+3
+        IE=J-1
+C
+C        FOUND FORMAT
+        IF(RVAL.GT.10.0**IE)THEN
+         IFORM=NCM2-J
+        ENDIF
+10     CONTINUE
+C
+       IFRM=0
+       CALL CFORM(IFRM,NCHA,IFORM, FORM,IC)
+       IF(IC.LT.0)GOTO 8000
+       WRITE(CVAL1,FORM(1:IC),ERR=6000)RVAL
+       CVAL(2:NCHA)=CVAL1(2:NCHA)
+      ELSE
+C
+C      USE EXPONENTIAL (G) FORMAT
+C
+       IFRM=1
+       CALL CFORM(IFRM,NCHA,NCM5, FORM,IC)
+       IF(IC.LT.0)GOTO 8000
+       WRITE(CVAL1,FORM(1:IC),ERR=7000)RVAL
+C
+C       LOOK FOR E AND ELIMINATE
+       IE=INDEX(CVAL1,'E')
+       CVAL(2:NCHA)=CVAL1(1:IE-1)//CVAL1(IE+1:NCHA+1)
+      ENDIF
+C
+C      ERROR CONTROL
+C
+      GOTO 9999
+6000  IERR=3
+      CVAL=BLANK
+      GOTO 9999
+7000  IERR=4
+      CVAL=BLANK  
+      GOTO 9999
+8000  IERR=5
+      CVAL=BLANK
+9999  CONTINUE
+      RETURN
+      END
+C*************************************************************************
+C
+      SUBROUTINE CFORM(ITYPE,NCHA,IFORM, FORM,IC)
+C
+C*************************************************************************
+C
+C       NAME OF MODULE - CFORM
+C       MODULE TITLE - CREATE CHARACTER STRING G FORMAT
+C       PURPOSE - TO CREATE A CHARACTER STRING OF THE DESIRED G FORMAT
+C       FORMAT STATEMENT FOR USE BY RTS 
+C       CALLED BY - RTS
+C       MODIFIED - 9-13-89 
+C
+C
+C       VARIABLES USED-
+C
+C VARIABLE I/O TYPE-SPEC DIMENSION     DESCRIPTION AND RANGE
+C  ITYPE    I      I        -          DESIRED FORMAT TYPE (0=F,1=G)
+C   NCHA    I      I        -          DESIRED OUTPUT CHARACTER STRING LENGTH
+C  IFORM    I      I        -          REQUIRED SECOND FORMAT IE G8.?
+C   FORM    O      C        -          FORMAT DESIRED
+C     IC    O      I        -          NUMBER OF CHARACTERS FOR FORMAT LABEL
+C                                      (6 TO 8) OR NEGATIVE FOR INTERNAL WRITE 
+C                                      ERROR 
+C
+      CHARACTER*1  CTYP
+      CHARACTER*8  FORM
+C
+C      SET FORMAT TYPE
+C
+      IF(ITYPE.EQ.0)THEN
+       CTYP='F'
+      ELSE
+       CTYP='G'
+      ENDIF
+C
+C      CREATE FORMAT
+C
+      IF(NCHA.LT.10)THEN
+C      FORM (FX.X) OR (GX.X) SIX CHARACTERS
+       WRITE(FORM,10,ERR=1000)CTYP,NCHA,IFORM
+       IC=6
+10     FORMAT('(',A,I1,'.',I1,')')
+      ELSE
+       IF(IFORM.LT.10)THEN
+C
+C        FORM (FXX.X) OR (GXX.X) SEVEN CHARACTERS
+        WRITE(FORM,20,ERR=1000)CTYP,NCHA,IFORM
+        IC=7
+20      FORMAT('(',A,I2,'.',I1,')')
+       ELSE
+C
+C        FORM (FXX.XX) OR (GXX.XX) EIGHT CHARACTERS
+        WRITE(FORM,30,ERR=1000)CTYP,NCHA,IFORM
+        IC=8
+30      FORMAT('(',A,I2,'.',I2,')')
+       ENDIF
+      ENDIF
+      GOTO 2000
+C
+C      ERROR ON INTERNAL WRITE
+C
+1000  IC=-1
+2000  CONTINUE
+      RETURN
+      END
