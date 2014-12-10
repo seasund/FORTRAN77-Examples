@@ -1,0 +1,68 @@
+C**************************
+C*****ILLUSTRATION ONE*****
+C**************************
+C
+C234567
+      IMPLICIT REAL*8 (A-H,O-Z)
+C
+C      G FORMAT
+C      G N.N-7    8<N
+C
+C       OUTPUT BELOW
+C G 8. 1 = -0.1E-14
+C G 9. 2 = -0.12E-14
+C G10. 3 = -0.123E-14
+C G11. 4 = -0.1235E-14
+C G12. 5 = -0.12346E-14
+C G13. 6 = -0.123457E-14
+C G14. 7 = -0.1234566E-14
+C G15. 8 = -0.12345657E-14
+C G16. 9 = -0.123456570E-14
+C G17.10 = -0.1234565700E-14
+C G18.11 = -0.12345657000E-14
+C G19.12 = -0.123456570000E-14
+C G20.13 = -0.1234565700000E-14
+C
+      IO=6
+      A=-1.2345657D-15
+      DO 20 N=8,18
+       K=N-7
+C       WRITE(IO,10)N,K,A
+C10     FORMAT(1X,'G',I2,'.',I2,' = ',G<N>.<K>)
+       IF(N.EQ.8)THEN
+        WRITE(IO,88)N,K,A
+       ELSE IF(N.EQ.9)THEN
+        WRITE(IO,89)N,K,A
+       ELSE IF(N.EQ.10)THEN
+        WRITE(IO,90)N,K,A
+       ELSE IF(N.EQ.11)THEN
+        WRITE(IO,91)N,K,A
+       ELSE IF(N.EQ.12)THEN
+        WRITE(IO,92)N,K,A
+       ELSE IF(N.EQ.13)THEN
+        WRITE(IO,93)N,K,A
+       ELSE IF(N.EQ.14)THEN
+        WRITE(IO,94)N,K,A
+       ELSE IF(N.EQ.15)THEN
+        WRITE(IO,95)N,K,A
+       ELSE IF(N.EQ.16)THEN
+        WRITE(IO,96)N,K,A
+       ELSE IF(N.EQ.17)THEN
+        WRITE(IO,97)N,K,A
+       ELSE 
+        WRITE(IO,98)N,K,A
+       ENDIF
+88     FORMAT(1X,'G',I2,'.',I2,' = ',G8.1)
+89     FORMAT(1X,'G',I2,'.',I2,' = ',G9.2)
+90     FORMAT(1X,'G',I2,'.',I2,' = ',G10.3)
+91     FORMAT(1X,'G',I2,'.',I2,' = ',G11.4)
+92     FORMAT(1X,'G',I2,'.',I2,' = ',G12.5)
+93     FORMAT(1X,'G',I2,'.',I2,' = ',G13.6)
+94     FORMAT(1X,'G',I2,'.',I2,' = ',G14.7) 
+95     FORMAT(1X,'G',I2,'.',I2,' = ',G15.8)
+96     FORMAT(1X,'G',I2,'.',I2,' = ',G16.9)
+97     FORMAT(1X,'G',I2,'.',I2,' = ',G17.10)
+98     FORMAT(1X,'G',I2,'.',I2,' = ',G18.11)    
+C
+20    CONTINUE
+      END
